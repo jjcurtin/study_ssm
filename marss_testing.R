@@ -1,0 +1,16 @@
+library(MARSS)
+set.seed(1234)
+B1 <- matrix(list("b",0,0,"b"),2,2)
+U1 <- matrix(0,2,1)
+Q1 <- matrix(c("q11","q12","q12","q22"),2,2)
+Z1 <- matrix(c(1,0,1,1,1,0),3,2)
+A1 <- matrix(list("a1",0,0),3,1)
+R1 <- matrix(list("r11",0,0,0,"r",0,0,0,"r"),3,3)
+pi1 <- matrix(0,2,1); V1=diag(1,2)
+model.list <- list(B=B1,U=U1,Q=Q1,Z=Z1,A=A1,R=R1,x0=pi1,V0=V1,tinitx=0)
+
+x <- rbind(arima.sim(n=50,list(ar=0.95), sd=0.4), 
+           arima.sim(n=50,list(ar=0.95), sd=.02))
+y <- Z1 %*% x + matrix(rnorm(3*50,0,0.1), 3, 50)
+fit <- MARSS(y, model=model.list, silent=TRUE)
+tidy(fit)
