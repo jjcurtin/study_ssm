@@ -7,8 +7,8 @@ library("MASS",exclude=c('select'))
 library("doParallel")
 library("data.table")
 
-source("_ssm/mle_coef_fit.R")
-source("_ssm/helper_functions.R")
+source("fun_mle_fit")
+source("helper_functions.R")
 source("https://github.com/jjcurtin/lab_support/blob/main/format_path.R?raw=true")
 
 path_data <- format_path("risk/data_processed/ssm")

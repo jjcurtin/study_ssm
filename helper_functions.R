@@ -519,10 +519,10 @@ get_window_preds<-function(model_pars,input_data,meanTT,varTT,type,TT,Tfinal,win
 run_kf <- function(model,lag1=TRUE){
   # Extract data and relevant dimensions from model object
   datamat <- model$data
-  n <- model$dims$n
+  n <- model$dims$n 
   m <- model$dims$m
-  TT <- model$dims$TT
-  h <- model$dims$h
+  TT <- model$dims$TT 
+  h <- model$dims$h 
   g <- model$dims$g
   par.1 <- model$par
   

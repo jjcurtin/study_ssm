@@ -1,0 +1,12 @@
+---
+title: "Notes"
+author: "Kendra Wyant"
+format: html
+---
+
+MARSS doesn't directly allow for Bayesian priors on state space models. Starting point for Maximum Likelihood Estimates.
+
+Can add penalty to estimates though using `control$penalty`.
+
+
+- make features using most recent ema? or ema for that day?

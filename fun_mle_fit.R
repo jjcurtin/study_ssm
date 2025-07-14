@@ -7,7 +7,7 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
     filter(subid == the_subid)
   
   first_ema_day <- 1
-  last_ema_day <- subid_info$study_days
+  last_ema_day <- subid_info$study_days # - 1
   ema_count <- subid_info$n
   
   # # # # # # # # # # # # # # # # # # # # #
@@ -21,16 +21,15 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   # # # # # # # # # # # #
   # Set up dimensions for model (stored in list, stored in mod)
   dims <- list()
-  # TEMPORARY, fix observation dimension to 9 EMA + lapse (10)
-  # n:= dimension of observation vector
-  # TODO g:= first dimension of observation noise coefficient matrix
+  # n: dimension of the observation vector - set to 10 (9 EMA variables + 1 lapse variable)
+  # g: dimension of the observation noise (same as n, each observation has its own noise term)
   n <- g <- 10
   dims['n'] <- n
   dims['g'] <- g
   
-  # TEMPORARY - Fix hidden state dimension at 2
-  # m:= dimension of latent state vector
-  # TODO h:= first dimension of latent state noise coefficient matrix
+  # Fix hidden state dimension at 2
+  # m: dimension of the latent state vector, set to 2
+  # h: dimension of the latent state noise, set to 2
   m <- h <- 2
   dims['m'] <- m
   dims['h'] <- h 
@@ -43,9 +42,9 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   # # # # # # # # # # # #
   # Miscellaneous settings
   settings<-list()
-  settings[['tinit']]<-1
+  settings[['tinit']]<-1 # intialization time (first row of data matrix)
   settings[['subid']] <-subid_info$subid
-  settings[['mema_count']] <- ema_count
+  settings[['mema_count']] <- ema_count # number of emas
   settings[['last_ema']] <- last_ema_day
   settings[['first_ema']] <- first_ema_day
   
@@ -54,6 +53,12 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   # # # # # # # # # # # #
   # Initial Parameters  #
   # # # # # # # # # # # #
+  
+  # Initialize the parameter values (uses a fixed value obtained as a population average of early MARSS MLE fits)
+  # returns:
+  #  initial states (x0, v0)
+  #  transition equation, offset, variance/covariance, coefficient matrix on noise
+  #  observation equation, offset, variance/covariance, coefficient matrix on noise
   mod[['par']] <- init_par(mod[['dims']])
   
   # # # # # # # # # # # #
@@ -67,11 +72,12 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   #     Data Horizon    #
   # # # # # # # # # # # #
   # Check for the length of the time series, add to dims
-  # Tfinal := final time series index
-  Tfinal <- min(last_ema_day,89) - 1
-  start_day <- first_ema_day 
-  mod$dims['T'] <- Tfinal
-  mod$dims['TT'] <- Tfinal-first_ema_day
+  # Tfinal = final time series index - add 1 for full time series (including final unobserved state after last ema)
+  # TT = The number of time steps (i.e., duration or length of the time series)
+  Tfinal <- min(last_ema_day,89) # + 1  
+  start_day <- first_ema_day # + 1  # start on day 2 to match first label?
+  mod$dims['T'] <- Tfinal 
+  mod$dims['TT'] <- Tfinal - start_day
   
   # # # # # # # # # # # #
   #     Attach Data     #
