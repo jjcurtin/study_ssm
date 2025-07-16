@@ -74,12 +74,10 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   #     Data Horizon    #
   # # # # # # # # # # # #
   # Check for the length of the time series, add to dims
-  # Tfinal = final time series index 
+  # Tfinal = final time series index( also equals length of data frame)
   # TT = The number of time steps (i.e., duration or length of the time series)
-  
-  # I think I am supposed to add 1 for full time series (including final unobserved state 
-  # after last ema) but then the code for creating transposed matrix doesn't work. 
-  Tfinal <- min(last_ema_day,89) # + 1
+
+  Tfinal <- min(last_ema_day,89) 
   start_day <- first_ema_day 
   mod$dims['T'] <- Tfinal 
   mod$dims['TT'] <- Tfinal - start_day
@@ -88,7 +86,6 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   #     Attach Data     #
   # # # # # # # # # # # #
   # Put in the data
-  # change Tfinal to Tfinal - 1?
   datamat <- t(as.matrix(subid_data))[c(3, 4,5,6,7,8,9,10,11,12),start_day:Tfinal]
   
   mod[['data']]<-datamat
@@ -103,8 +100,9 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   # # # # # # # # # # # #
   
   # Fit model
-  # TT needs to be number of data rows 
-  # error with SSMCustom: 
+  # error 1: TT needs to be number of data rows
+  
+  # error 2 with SSMCustom: 
   # Error in `[[<-.data.frame`(`*tmp*`, i, value = c(25L, 25L, 25L, 25L, 25L,  : 
   # replacement has 830 rows, data has 83
   local_mod <- run_kf(local_mod) # MARSSkf() as another option?
