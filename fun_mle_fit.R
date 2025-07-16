@@ -6,8 +6,10 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   subid_data <- data |> 
     filter(subid == the_subid)
   
-  first_ema_day <- 1
-  last_ema_day <- subid_info$study_days # - 1
+  first_ema_day <- 1 
+  # KW: labels skip first day so days on study (last ema - first ema) has an extra observation
+  # remove 1 from count?
+  last_ema_day <- subid_info$study_days - 1
   ema_count <- subid_info$n
   
   # # # # # # # # # # # # # # # # # # # # #
@@ -72,10 +74,13 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   #     Data Horizon    #
   # # # # # # # # # # # #
   # Check for the length of the time series, add to dims
-  # Tfinal = final time series index - add 1 for full time series (including final unobserved state after last ema)
+  # Tfinal = final time series index 
   # TT = The number of time steps (i.e., duration or length of the time series)
-  Tfinal <- min(last_ema_day,89) # + 1  
-  start_day <- first_ema_day # + 1  # start on day 2 to match first label?
+  
+  # I think I am supposed to add 1 for full time series (including final unobserved state 
+  # after last ema) but then the code for creating transposed matrix doesn't work. 
+  Tfinal <- min(last_ema_day,89) # + 1
+  start_day <- first_ema_day 
   mod$dims['T'] <- Tfinal 
   mod$dims['TT'] <- Tfinal - start_day
   
@@ -83,6 +88,7 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   #     Attach Data     #
   # # # # # # # # # # # #
   # Put in the data
+  # change Tfinal to Tfinal - 1?
   datamat <- t(as.matrix(subid_data))[c(3, 4,5,6,7,8,9,10,11,12),start_day:Tfinal]
   
   mod[['data']]<-datamat
@@ -97,6 +103,10 @@ run_mle_fit <- function(the_subid, data, info, fit_lapse=FALSE){
   # # # # # # # # # # # #
   
   # Fit model
+  # TT needs to be number of data rows 
+  # error with SSMCustom: 
+  # Error in `[[<-.data.frame`(`*tmp*`, i, value = c(25L, 25L, 25L, 25L, 25L,  : 
+  # replacement has 830 rows, data has 83
   local_mod <- run_kf(local_mod) # MARSSkf() as another option?
   iters <- 15000
   conv_tol <- 0.0001

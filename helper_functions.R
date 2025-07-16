@@ -612,6 +612,7 @@ run_kf <- function(model,lag1=TRUE){
   
   # Create the model
   # Pass different matrices depending on lag-1 or not
+  # When to use no lag? 
   if(lag1){
     kfas.model <- SSModel(yt ~ -1 + SSMcustom(Z = stack.Zt, T = stack.Tt, R = stack.Rt, Q = stack.Qt, a1 = stack.a1, P1 = stack.P1, P1inf = stack.P1inf), H = Ht)
   }else{

@@ -7,7 +7,7 @@ library("MASS",exclude=c('select'))
 library("doParallel")
 library("data.table")
 
-source("fun_mle_fit")
+source("fun_mle_fit.R")
 source("helper_functions.R")
 source("https://github.com/jjcurtin/lab_support/blob/main/format_path.R?raw=true")
 
