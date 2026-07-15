@@ -1,0 +1,77 @@
+---
+title: "MARSS Testing"
+output: html_notebook
+---
+
+```{r}
+library('tidyverse')
+```
+
+
+```{r}
+data <- read.csv('/Users/eric/repos/aud/test_low_lapse.csv')
+summary(data)
+```
+```{r}
+datamat <- t(as.matrix(data))
+datamat <- datamat[-(1),]
+View(datamat)
+```
+
+```{r}
+library(MARSS)
+```
+
+```{r}
+B1 <- matrix(list("b11", "b21", "b12", "b22"), 2, 2)
+U1 <- matrix(0, 2, 1)
+Q1 <- diag(1, 2)
+Z1 <- matrix(c(
+    "z11", "z21", "z31", "z41", "z51", "z61", "z71", "z81", "z91",
+    "z12", "z22", "z32", "z42", "z52", "z62", "z72", "z82", "z92"
+), 9, 2)
+A1 <- matrix(list("a1", "a2","a3","a4","a5","a6","a7","a8","a9"), 9, 1)
+R1 <- matrix(list(
+    "r1", 0, 0, 0, 0, 0, 0, 0, 0,
+    0, "r2", 0, 0, 0, 0, 0, 0, 0,
+    0, 0, "r3", 0, 0, 0, 0, 0, 0,
+    0, 0, 0, "r4", 0, 0, 0, 0, 0,
+    0, 0, 0, 0, "r5", 0, 0, 0, 0,
+    0, 0, 0, 0, 0, "r6", 0, 0, 0,
+    0, 0, 0, 0, 0, 0, "r7", 0, 0,
+    0, 0, 0, 0, 0, 0, 0, "r8", 0,
+    0, 0, 0, 0, 0, 0, 0, 0, "r9"
+),9,9)
+pi1 <- matrix(0, 2, 1)
+V1 = diag(1, 2, 2)
+R1
+model.list <- list(B = B1, U = U1, Q = Q1, Z = Z1, A = A1, R = R1, x0 = pi1, V0 = V1, tinitx = 0)
+```
+
+```{r}
+fit <- MARSS(datamat, model = model.list, control = list(maxit = 4000))
+```
+```{r}
+bfgsfit <- MARSS(datamat, model = model.list, method = "BFGS", inits = fit)
+```
+
+```{r}
+print(fit$model)
+```
+
+```{r}
+summary(fit$model)
+```
+```{r}
+x <- print(fit, what="states")
+```
+```{r}
+parvec <- coef(fit, type="vector")
+parvec
+```
+```{r}
+tidy(bfgsfit)
+```
+```{r}
+ggplot2::autoplot(bfgsfit)
+```

@@ -1,0 +1,21 @@
+universe = docker
+docker_image = pulick/aud_test:att4
+
+executable = aud_driver.sh
+arguments = $(Process) $(Cluster) $(subid) $(type)
+
+log = logs/aud_$(Cluster)_$(Process).log
+error = errs/aud_$(Cluster)_$(Process).err
+output = outs/aud_$(Cluster)_$(Process).out
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files = input_files.tar.gz
+transfer_output_files = outputs
+transfer_output_remaps = "outputs=data_repo/$(Cluster)"
+
+request_cpus = 1
+request_memory = 0.5GB
+request_disk = .25GB
+
+queue 1 subid,type from subid_list.txt

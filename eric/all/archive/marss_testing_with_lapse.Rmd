@@ -1,0 +1,156 @@
+---
+title: "MARSS Testing"
+output: html_notebook
+---
+
+```{r}
+library('tidyverse')
+```
+
+
+```{r}
+data <- read.csv('/Users/eric/repos/aud/test_high_lapse_d.csv')
+summary(data)
+```
+```{r}
+datamat <- t(as.matrix(data))
+datamat <- datamat[-(1),]
+View(datamat)
+```
+
+```{r}
+library(MARSS)
+```
+
+```{r}
+B1 <- matrix(list("b11", "b21", "b12", "b22"), 2, 2)
+U1 <- matrix(0, 2, 1)
+Q1 <- diag(1, 2)
+Z1 <- matrix(c(
+    "z11", "z21", "z31", "z41", "z51", "z61", "z71", "z81", "z91", "z101",
+    "z12", "z22", "z32", "z42", "z52", "z62", "z72", "z82", "z92", "z102"
+), 10, 2)
+A1 <- matrix(list("a1", "a2","a3","a4","a5","a6","a7","a8","a9","a10"), 10, 1)
+R1 <- matrix(list(
+    "r1", 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, "r2", 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, "r3", 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, "r4", 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, "r5", 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, "r6", 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, "r7", 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, "r8", 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, "r9", 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0.25
+),10,10)
+pi1 <- matrix(0, 2, 1)
+V1 = diag(1, 2, 2)
+R1
+model.list <- list(B = B1, U = U1, Q = Q1, Z = Z1, A = A1, R = R1, x0 = pi1, V0 = V1, tinitx = 1)
+```
+```{r}
+B1 <- matrix(list("b11", "b21","b31", "b12", "b22","b32","b13","b23","b33"), 3, 3)
+U1 <- matrix(0, 3, 1)
+Q1 <- diag(1, 3)
+Z1 <- matrix(c(
+    "z11", "z21", "z31", "z41", "z51", "z61", "z71", "z81", "z91", "z101",
+    "z12", "z22", "z32", "z42", "z52", "z62", "z72", "z82", "z92", "z102",
+    "z13", "z23", "z33", "z43", "z53", "z63", "z73", "z83", "z93", "z103"
+), 10, 3)
+A1 <- matrix(list("a1", "a2","a3","a4","a5","a6","a7","a8","a9","a10"), 10, 1)
+R1 <- matrix(list(
+    "r1", 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, "r2", 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, "r3", 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, "r4", 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, "r5", 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, "r6", 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, "r7", 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, "r8", 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, "r9", 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0.25
+),10,10)
+pi1 <- matrix(0, 3, 1)
+V1 = diag(1, 3, 3)
+R1
+model.list <- list(B = B1, U = U1, Q = Q1, Z = Z1, A = A1, R = R1, x0 = pi1, V0 = V1, tinitx = 1)
+```
+```{r}
+B1 <- "diagonal and unequal"
+U1 <- "unequal"
+Q1 <- diag(1, 9)
+R1 <- matrix(list(0),10,10)
+diag(R1)<-list("r1","r2","r3","r4","r5","r6","r7","r8","r9",0.1)
+R1
+Z1 <- diag(1,10,9)
+Z1[10,] <- c("d1","d2","d3","d4","d5","d6","d7","d8","d9")
+A1 <- "zero"
+pi1 <- matrix(0, 9, 1)
+V1 = diag(1, 9, 9)
+model9 <-list(B = B1, U = U1, Q = Q1, Z = Z1, A = A1, R = R1, x0 = pi1, V0 = V1, tinitx = 1)
+```
+```{r}
+B1 <- matrix(list("b11", 0,0, 0, "b22",0,0,0,"b33"), 3, 3)
+B1
+U1 <- matrix(list("u1","u2","u3"),3,1)
+U1
+Q1 <- diag(1, 3,3)
+Q1
+R1 <- matrix(list(0),10,10)
+R1
+diag(R1)<-list("r1","r2","r3","r4","r5","r6","r7","r8","r9",0.1)
+Z1 <- matrix(c(
+    "z11", "z21", "z31", "z41", "z51", "z61", "z71", "z81", "z91", "z101",
+    "z12", "z22", "z32", "z42", "z52", "z62", "z72", "z82", "z92", "z102",
+    "z13", "z23", "z33", "z43", "z53", "z63", "z73", "z83", "z93", "z103"
+), 10, 3)
+Z1
+A1 <- matrix(0,10,1)
+A1[10]<-"a"
+pi1 <- matrix(0, 3, 1)
+pi1
+V1 = diag(1, 3, 3)
+model3 <-list(B = B1, U = U1, Q = Q1, Z = Z1, A = A1, R = R1, x0 = pi1, V0 = V1, tinitx = 1)
+```
+
+```{r}
+curr_model <- model9
+fit <- MARSS(datamat, model = model9, control = list(maxit = 500))
+```
+```{r}
+bfgsfit <- MARSS(datamat, model = curr_model, method = "BFGS", inits = fit)
+```
+
+```{r}
+print(fit$model)
+```
+```{r}
+AIC(fit)
+```
+
+```{r}
+summary(fit$model)
+```
+```{r}
+x <- print(fit, what="states")
+```
+```{r}
+parvec <- coef(fit, type="vector")
+parvec
+```
+```{r}
+tidy(bfgsfit)
+```
+```{r}
+ggplot2::autoplot(bfgsfit)
+```
+```{r}
+fr <- predict(fit, n.ahead = 5, interval = "prediction")
+fr
+```
+
+```{r}
+fr <- predict(fit, n.ahead = 5, interval = "prediction")
+fr
+```
+

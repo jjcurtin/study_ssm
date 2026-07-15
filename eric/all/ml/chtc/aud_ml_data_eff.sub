@@ -1,0 +1,21 @@
+universe = docker
+docker_image = pulick/aud_ml_test:att1
+
+executable = aud_ml_driver_data_eff.sh
+arguments = $(Process) $(Cluster) $(key)
+
+log = logs/aud_$(Cluster)_$(Process).log
+error = errs/aud_$(Cluster)_$(Process).err
+output = outs/aud_$(Cluster)_$(Process).out
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files = input_ml_files_data_eff.tar.gz
+transfer_output_files = outputs
+transfer_output_remaps = "outputs=data_repo/$(Cluster)"
+
+request_cpus = 8
+request_memory = 1.25GB
+request_disk = 1GB
+
+queue 1 key from subid_ml_list_data_eff.txt
