@@ -1,3 +1,6 @@
+# this script came from eric in eric/all/coef_fitting folder
+# we are currently using these functions: make_zero_priors()
+
 run_mle_fit <- function(subid_data,subid_info,fit_lapse=FALSE){
   
   last_ema_day <- subid_info$last_morning_ema_day

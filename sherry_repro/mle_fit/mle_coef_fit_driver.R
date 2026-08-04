@@ -1,3 +1,5 @@
+# this script came from eric in eric/all/coef_fitting folder
+
 # Complete data
 library('tidyverse')
 library('tictoc')

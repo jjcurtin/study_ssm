@@ -1,16 +1,12 @@
+# This script is to fit SSM on one patient's data(subid=2)
+# and predict day83 through day81-82
 # Relevant libraries
 library("KFAS")
 library('tidyverse')
 library("MASS",exclude=c('select'))
-library("comprehenr")
-library("invgamma")
 library("data.table")
-library("truncnorm")
-library("fitdistrplus")
 library("tictoc")
-library("mvtnorm")
 library('MARSS')
-library('jsonlite')
 
 # Source helper files
 source('sherry_repro/helper_functions.R')
@@ -22,7 +18,6 @@ source('sherry_repro/mle_fit/mle_coef_fit.R')
 data_all <- read.csv("S:/ssm_capstone/data_raw/features_ema_ssm_1x_day_24h.csv")
 subject_data <- subset(data_all, subid == 2)
 unique(subject_data$lapse)
-subject_data$lapse |> table()
 subject_data$lapse <- ifelse(subject_data$lapse == "lapse", 1, 0)
 
 #--------------------------------------------------
@@ -93,6 +88,7 @@ obs_cols <- c(
 # Observation Matrix (g x TT)
 Y <- t(as.matrix(subject_data[, obs_cols]))
 dim(Y)
+
 # # # # # # # # # # # #
 #     Data Horizon    #
 # # # # # # # # # # # #
@@ -120,14 +116,14 @@ mod[['data']] <- masked_datamat
 # Save the true final lapse for later comparison
 act_0 <- raw_datamat[10, TT]
 
+# # # # # # # # # # # # # # # # # # # # #
+#             MODEL FITTING             #
+# # # # # # # # # # # # # # # # # # # # #
+
 # ZERO PRIORS (placeholder so run_em() works)
 priors <- make_zero_priors(mod)
 mod[['priors']] <- priors
 zero_priors_bool <- TRUE
-
-# # # # # # # # # # # # # # # # # # # # #
-#             MODEL FITTING             #
-# # # # # # # # # # # # # # # # # # # # #
 
 local_mod <- mod
 # Fit model
@@ -136,6 +132,11 @@ iters <- 15000
 conv_tol <- 0.0001
 fit_obj <- run_em(local_mod,iters,conv_tol,zero_priors_bool)
 local_mod <- fit_obj[['model']]
+
+# # #
+# Above model fitting part basicaly came from 
+# function run_mle_fit() in mle_coef_fit.R
+# # #
 
 fit_obj$error
 

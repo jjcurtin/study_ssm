@@ -1,5 +1,5 @@
 #this script came from eric in eric/public/model_fitting folder
-# we are currently using these functions: init_par() 
+# we are currently using these functions: init_par(), run_kf(), run_em()
 
 # Initialize the parameter values (uses a fixed value obtained as a population average of early MARSS MLE fits)
 # Future work to incorporate multiple random initialization to evaluate if this leads to materially better fits
