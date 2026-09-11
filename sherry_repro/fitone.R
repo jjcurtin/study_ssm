@@ -1,5 +1,5 @@
 # This script is to fit SSM on one patient's data(subid=2)
-# and predict day83 through day81-82
+# and predict day2 - 83
 # Relevant libraries
 library("KFAS")
 library('tidyverse')
@@ -9,8 +9,8 @@ library("tictoc")
 library('MARSS')
 
 # Source helper files
-source('sherry_repro/helper_functions.R')
-source('sherry_repro/mle_fit/mle_coef_fit.R')
+source('sherry_repro/helper_functions.R') # from eric's 
+source('sherry_repro/mle_fit/mle_coef_fit.R') # from eric's
 
 #--------------------------------------------------
 # Read one participant
@@ -87,34 +87,34 @@ obs_cols <- c(
 
 # Observation Matrix (g x TT)
 Y <- t(as.matrix(subject_data[, obs_cols]))
-dim(Y)
+
 
 # # # # # # # # # # # #
 #     Data Horizon    #
 # # # # # # # # # # # #
 
 # Length of this participant's time series
-TT <- ncol(Y)
-mod$dims[['TT']] <- TT
+#TT <- ncol(Y)
+#mod$dims[['TT']] <- TT
 
 # # # # # # # # # # # #
 #     Attach Data     #
 # # # # # # # # # # # #
 
 # Keep a copy of the complete observation matrix
-raw_datamat <- Y
+#raw_datamat <- Y
 
 # Create masked data matrix for prediction
-masked_datamat <- raw_datamat
+#masked_datamat <- raw_datamat
 
 # Mask the final lapse state
-masked_datamat[10, TT] <- NA
+#masked_datamat[10, TT] <- NA
 
 # Attach to model object
-mod[['data']] <- masked_datamat
+#mod[['data']] <- masked_datamat
 
 # Save the true final lapse for later comparison
-act_0 <- raw_datamat[10, TT]
+#act_0 <- raw_datamat[10, TT]
 
 # # # # # # # # # # # # # # # # # # # # #
 #             MODEL FITTING             #
@@ -125,31 +125,107 @@ priors <- make_zero_priors(mod)
 mod[['priors']] <- priors
 zero_priors_bool <- TRUE
 
-local_mod <- mod
+#local_mod <- mod
 # Fit model
-local_mod <- run_kf(local_mod)
+#local_mod <- run_kf(local_mod)
+
 iters <- 15000
 conv_tol <- 0.0001
-fit_obj <- run_em(local_mod,iters,conv_tol,zero_priors_bool)
-local_mod <- fit_obj[['model']]
+
+
+#fit_obj <- run_em(local_mod,iters,conv_tol,zero_priors_bool)
+#local_mod <- fit_obj[['model']]
 
 # # #
 # Above model fitting part basicaly came from 
 # function run_mle_fit() in mle_coef_fit.R
 # # #
 
-fit_obj$error
+# Store predictions
+pred_out <- data.frame(
+  day = integer(),
+  pred = numeric(),
+  actual = numeric()
+)
 
-mod$par$B
+# Expanding window:
+# Day 1 -> predict Day 2
+# Day 1:2 -> predict Day 3
+# make prediction for all participants, day 8 - ,
+# first ignore time and get overall AUROC(for all participants) and LOG LOSS(all observations)(make negative prediction zero, above 1-1)
+# include day 30, second day 30, should be better.(probability on each 30 days and overall)
 
-fit_obj$model$par$B
+Tfinal <- ncol(Y)
 
-pred_0 <- local_mod$kf_proc$ytT[10, TT]
-pred_0
-act_0
-local_mod$kf_proc$xtT[, TT]
-A <- local_mod$par$A
-c <- local_mod$par$c
-x <- local_mod$kf_proc$xtT[, TT]
+for (TT in 2:Tfinal) {
+  
+  mod$dims[['TT']] <- TT
+  
+  # Use data from Day 1 through current prediction day
+  raw_datamat <- Y[, 1:TT, drop = FALSE]
+  
+  # Hide lapse on current prediction day
+  masked_datamat <- raw_datamat
+  masked_datamat[10, TT] <- NA
+  
+  mod[['data']] <- masked_datamat
+  
+  # Save true lapse
+  act_0 <- raw_datamat[10, TT]
+  
+  # Fit model from scratch for this window
+  local_mod <- mod
+  local_mod <- run_kf(local_mod)
+  
+  fit_obj <- run_em(local_mod, iters, conv_tol, zero_priors_bool)
+  local_mod <- fit_obj[['model']]
+  
+  # Predict masked lapse
+  pred_0 <- local_mod$kf_proc$ytT[10, TT]
+  pred_out <- rbind(
+    pred_out,
+    data.frame(
+      day = TT,
+      pred = pred_0,
+      actual = act_0
+    )
+  )
+  print(paste("Day", TT, "pred:", pred_0, "actual:", act_0))
+}
 
-(A %*% matrix(x, 2, 1) + c)
+write.csv(
+  pred_out,
+  "sherry_repro/pred_out.csv",
+  row.names = FALSE
+)
+
+aggregate(pred ~ actual, data = pred_out, FUN = mean)
+
+aggregate(
+  pred ~ actual,
+  data = pred_out[pred_out$day >= 31, ],
+  FUN = mean
+)
+
+table(pred_out$actual)
+
+pred_out[pred_out$actual == 1, ]
+
+local_mod$par$A[10, ]
+local_mod$par$c[10, ]
+
+# fit_obj$error
+# 
+# mod$par$B
+# 
+# fit_obj$model$par$B
+# 
+# pred_0 <- local_mod$kf_proc$ytT[10, TT]
+# pred_0
+# act_0
+# local_mod$kf_proc$xtT[, TT]
+# A <- local_mod$par$A
+# c <- local_mod$par$c
+# x <- local_mod$kf_proc$xtT[, TT]
+# 
+# (A %*% matrix(x, 2, 1) + c)
