@@ -1,6 +1,5 @@
 # This script is to fit SSM on all patient's data
 # and predict day8 - end
-# and run it on chtc
 # Relevant libraries
 library("KFAS")
 library('tidyverse')
@@ -10,14 +9,14 @@ library("tictoc")
 library('MARSS')
 
 # Source helper files
-source('helper_functions.R') # from eric's 
-source('mle_coef_fit.R') # from eric's
+source('sherry_repro/helper_functions.R') # from eric's 
+source('sherry_repro/mle_fit/mle_coef_fit.R') # from eric's
 
 #--------------------------------------------------
 # Read participants
 #--------------------------------------------------
-raw_data <- read.csv("processed_features_ema_ssm_1x_day_24h.csv")
-subid_info <- read.csv("subid_info.csv")
+raw_data <- read.csv("S:/ssm_capstone/data_processed/processed_features_ema_ssm_1x_day_24h.csv")
+subid_info <- read.csv("S:/ssm_capstone/data_raw/subid_info.csv")
 
 subid_list <- subid_info$subid
 
@@ -109,6 +108,7 @@ for (subid in subid_list) {
   
   # Current participant
   data_i <- raw_data[raw_data$subid == subid, ]
+  data_i <- data_i[order(data_i$dttm_label), ]
   
   # Observation matrix: 10 x T
   Y <- t(as.matrix(data_i[, obs_cols]))
