@@ -1,6 +1,6 @@
-#train.sub
-container_image = osdf:///chtc/staging/jjcurtin/train.sif
-executable = train.sh
+#demo.sub
+container_image = osdf:///chtc/staging/s/stao48/train.sif
+executable = demo.sh
 arguments = $(job_num) $(subid)
   
 log = $(Cluster).log
