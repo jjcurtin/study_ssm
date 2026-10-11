@@ -2,10 +2,7 @@
 # and predict day8 - end
 # Relevant libraries
 library("KFAS")
-library('tidyverse')
 library("MASS",exclude=c('select'))
-library("data.table")
-library("tictoc")
 library('MARSS')
 
 # Source helper files

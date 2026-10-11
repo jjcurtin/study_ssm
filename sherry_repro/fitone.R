@@ -3,23 +3,23 @@
 # and run it on chtc
 # Relevant libraries
 library("KFAS")
-library('tidyverse')
 library("MASS",exclude=c('select'))
-library("data.table")
-library("tictoc")
 library('MARSS')
 
 # Source helper files
 source('helper_functions.R') # from eric's 
 source('mle_coef_fit.R') # from eric's
 
+# get args
+args <- commandArgs(trailingOnly = TRUE)
+job_num_arg <- args[1]
+subid_arg <- args[2]
+subid <- as.integer(subid_arg)
+
 #--------------------------------------------------
 # Read participants
 #--------------------------------------------------
 raw_data <- read.csv("processed_features_ema_ssm_1x_day_24h.csv")
-subid_info <- read.csv("subid_info.csv")
-
-subid_list <- subid_info$subid
 
 #--------------------------------------------------
 # Define Matrix
@@ -104,69 +104,61 @@ pred_out <- data.frame(
 )
 
 base_mod <- mod
+  
+# Current participant
+data_i <- raw_data[raw_data$subid == subid, ]
 
-for (subid in subid_list) {
+# Observation matrix: 10 x T
+Y <- t(as.matrix(data_i[, obs_cols]))
+Tfinal <- ncol(Y)
+
+# Final length of this participant's study period
+# current processed timeline starts at Day 1
+participant_mod <- base_mod
+participant_mod$dims[["T"]] <- Tfinal
+
+iters <- 15000
+conv_tol <- 0.0001
+
+# Predict Day 8 through last day
+for (pred_day in 8:Tfinal) {
   
-  # Current participant
-  data_i <- raw_data[raw_data$subid == subid, ]
+  # For expanding window starting at Day 1,
+  # window length = prediction day
+  TT <- pred_day
   
-  # Observation matrix: 10 x T
-  Y <- t(as.matrix(data_i[, obs_cols]))
-  Tfinal <- ncol(Y)
+  # Start every window from the initial model
+  local_mod <- participant_mod
+  local_mod$dims[["TT"]] <- TT
   
-  # Fewer than 8 model days -> skip
-  if (Tfinal < 8) {
-    next
-  }
+  # Day 1 through prediction day
+  raw_datamat <- Y[, 1:TT, drop = FALSE]
   
-  # Final length of this participant's study period
-  # current processed timeline starts at Day 1
-  participant_mod <- base_mod
-  participant_mod$dims[["T"]] <- Tfinal
+  # Save true lapse
+  act_0 <- raw_datamat[10, TT]
   
-  iters <- 15000
-  conv_tol <- 0.0001
+  # Mask lapse on prediction day
+  masked_datamat <- raw_datamat
+  masked_datamat[10, TT] <- NA
+  local_mod[["data"]] <- masked_datamat
   
-  # Predict Day 8 through last day
-  for (pred_day in 8:Tfinal) {
-    
-    # For expanding window starting at Day 1,
-    # window length = prediction day
-    TT <- pred_day
-    
-    # Start every window from the initial model
-    local_mod <- participant_mod
-    local_mod$dims[["TT"]] <- TT
-    
-    # Day 1 through prediction day
-    raw_datamat <- Y[, 1:TT, drop = FALSE]
-    
-    # Save true lapse
-    act_0 <- raw_datamat[10, TT]
-    
-    # Mask lapse on prediction day
-    masked_datamat <- raw_datamat
-    masked_datamat[10, TT] <- NA
-    local_mod[["data"]] <- masked_datamat
-    
-    # Fit model
-    local_mod <- run_kf(local_mod)
-    fit_obj <- run_em(local_mod, iters, conv_tol, zero_priors_bool)
-    local_mod <- fit_obj[["model"]]
-    
-    # Prediction for masked lapse
-    pred_0 <- local_mod$kf_proc$ytT[10, TT]
-    
-    pred_out <- rbind(
-      pred_out,
-      data.frame(
-        subid = subid,
-        day = pred_day,
-        pred = pred_0,
-        actual = act_0
-      )
+  # Fit model
+  local_mod <- run_kf(local_mod)
+  fit_obj <- run_em(local_mod, iters, conv_tol, zero_priors_bool)
+  local_mod <- fit_obj[["model"]]
+  
+  # Prediction for masked lapse
+  pred_0 <- local_mod$kf_proc$ytT[10, TT]
+  
+  pred_out <- rbind(
+    pred_out,
+    data.frame(
+      subid = subid,
+      day = pred_day,
+      pred = pred_0,
+      actual = act_0
     )
-  }
+  )
 }
 
 # # #
@@ -180,7 +172,7 @@ for (subid in subid_list) {
 
 write.csv(
   pred_out,
-  "sherry_repro/pred_out.csv",
+  paste0("pred_out_", job_num_arg, ".csv"),
   row.names = FALSE
 )
 
