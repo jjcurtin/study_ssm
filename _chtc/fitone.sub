@@ -1,6 +1,6 @@
-#demo.sub
+#fitone.sub
 container_image = osdf:///chtc/staging/s/stao48/train.sif
-executable = demo.sh
+executable = fitone.sh
 arguments = $(job_num) $(subid)
   
 log = $(Cluster).log
@@ -11,7 +11,7 @@ when_to_transfer_output = ON_EXIT
 transfer_output_remaps = "results_$(job_num).csv = results/results_$(job_num).csv"
 on_exit_hold = exitcode != 0
 max_retries = 1
-transfer_input_files = demo.R, helper_functions.R mle_coef_fit.R data.csv, jobs.csv
+transfer_input_files = fitone.R, helper_functions.R, mle_coef_fit.R, data.csv, jobs.csv
 max_idle = 1000
 request_cpus = 1
 request_memory = 50000MB
