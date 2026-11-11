@@ -2,9 +2,11 @@
 # and predict day8 - end
 # and run it on chtc
 # Relevant libraries
-library("KFAS")
-library("MASS",exclude=c('select'))
-library('MARSS')
+suppressPackageStartupMessages({
+  library("KFAS")
+  library("MASS",exclude=c('select'))
+  library('MARSS')
+})
 
 # Source helper files
 source('helper_functions.R') # from eric's 
@@ -19,7 +21,7 @@ subid <- as.integer(subid_arg)
 #--------------------------------------------------
 # Read participants
 #--------------------------------------------------
-raw_data <- read.csv("processed_features_ema_ssm_1x_day_24h.csv")
+raw_data <- read.csv("data.csv")
 
 #--------------------------------------------------
 # Define Matrix
@@ -172,7 +174,7 @@ for (pred_day in 8:Tfinal) {
 
 write.csv(
   pred_out,
-  paste0("pred_out_", job_num_arg, ".csv"),
+  paste0("results_", job_num_arg, ".csv"),
   row.names = FALSE
 )
 

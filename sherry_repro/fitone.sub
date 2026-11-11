@@ -1,5 +1,5 @@
 #fitone.sub
-container_image = osdf:///chtc/staging/s/stao48/train.sif
+container_image = osdf:///chtc/staging/s/stao48/statespace.sif
 executable = fitone.sh
 arguments = $(job_num) $(subid)
   
@@ -14,7 +14,7 @@ max_retries = 1
 transfer_input_files = fitone.R, helper_functions.R, mle_coef_fit.R, data.csv, jobs.csv
 max_idle = 1000
 request_cpus = 1
-request_memory = 50000MB
+request_memory = 10000MB
 request_disk = 3000MB
 want_campus_pools = TRUE
 want_ospool = TRUE
